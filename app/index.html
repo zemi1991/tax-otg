@@ -288,6 +288,16 @@
   .login .msg { margin-top: 12px; font-size: 14px; color: var(--text-2); min-height: 20px; }
   .login .msg.ok { color: var(--green); font-weight: 600; }
   .login .msg.bad { color: var(--red); }
+  .login .alt { display: block; margin: 14px auto 0; background: none; border: 0; color: var(--brand-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; width: auto; padding: 4px; }
+  .pw-dlg { width: min(400px, calc(100vw - 32px)); border-radius: 24px; }
+  .pw-dlg form { padding: 22px; }
+  .pw-dlg h2 { margin: 0 0 6px; font-size: 19px; }
+  .pw-dlg p { margin: 0 0 14px; color: var(--text-2); font-size: 14px; }
+  .pw-dlg input { width: 100%; border: 1px solid var(--hairline); background: var(--fill); color: var(--text); font: inherit; font-size: 16px; border-radius: 14px; padding: 13px 14px; margin-bottom: 10px; }
+  .pw-dlg .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+  .pw-dlg .row button { border: 0; border-radius: 14px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; background: var(--fill); color: var(--text); }
+  .pw-dlg .row button.go { background: linear-gradient(145deg, var(--brand), var(--brand-deep)); color: #fff; }
+  .pw-dlg .msg { font-size: 14px; min-height: 18px; color: var(--red); }
   .loading { text-align: center; padding: 80px 0; color: var(--text-2); }
   .banner { border-radius: 16px; padding: 10px 14px; font-size: 13px; color: var(--text-2); background: var(--tile); margin-bottom: 4px; }
 
@@ -322,6 +332,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>Export to Excel (CSV)</a>
         <a href="https://www.hasil.gov.my" target="_blank" rel="noopener" role="menuitem">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>LHDN (hasil.gov.my)</a>
+        <a href="#" id="lnkPassword" role="menuitem" class="hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Set password</a>
         <a href="#" id="lnkSignOut" role="menuitem" class="hidden">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l-5-5 5-5M5 12h11"/></svg>Sign out</a>
         <div class="mi" id="menuAccount"></div>
@@ -337,8 +349,10 @@
     <h2>Sign in</h2>
     <p>Enter your email and we'll send you a secure sign-in link. No password needed.</p>
     <input id="lgEmail" type="email" placeholder="you@gmail.com" autocomplete="email" inputmode="email">
+    <input id="lgPass" type="password" placeholder="Password" autocomplete="current-password" class="hidden">
     <button id="lgSend">Send sign-in link</button>
     <div class="msg" id="lgMsg"></div>
+    <button type="button" class="alt" id="lgMode">Sign in with password instead</button>
   </section>
 
   <div id="loading" class="loading">Loading your receipts…</div>
@@ -462,6 +476,17 @@
 
     <div class="err" id="err"></div>
     <button type="button" class="danger hidden" id="btnDelete">Delete Expense</button>
+  </form>
+</dialog>
+
+<dialog id="pwDlg" class="pw-dlg">
+  <form id="pwForm" method="dialog">
+    <h2>Set password</h2>
+    <p>Use it to sign in without waiting for an email. At least 8 characters.</p>
+    <input id="pw1" type="password" placeholder="New password" autocomplete="new-password" minlength="8">
+    <input id="pw2" type="password" placeholder="Repeat password" autocomplete="new-password" minlength="8">
+    <div class="msg" id="pwMsg"></div>
+    <div class="row"><button type="button" id="pwCancel">Cancel</button><button type="submit" class="go" id="pwSave">Save</button></div>
   </form>
 </dialog>
 
@@ -1114,6 +1139,7 @@ function applyMeta(d) {
   $('menuAccount').textContent = d.account ? 'Signed in as ' + d.account : 'Demo mode — not signed in';
   $('menuNote').textContent = 'Receipt scan: ' + (d.scanEngine || 'on-device OCR');
   $('lnkSignOut').classList.toggle('hidden', !IS_LIVE);
+  $('lnkPassword').classList.toggle('hidden', !IS_LIVE);
 }
 function showMain() { $('login').classList.add('hidden'); $('loading').classList.add('hidden'); $('main').classList.remove('hidden'); $('btnAdd').classList.remove('hidden'); }
 
@@ -1143,19 +1169,56 @@ function showLogin() {
   $('login').classList.remove('hidden');
   try { $('lgEmail').value = localStorage.getItem('tax-otg-email') || ''; } catch (e) {}
 }
+let pwMode = false;
+function setLoginMode(pw) {
+  pwMode = pw;
+  $('lgPass').classList.toggle('hidden', !pw);
+  $('lgSend').textContent = pw ? 'Sign in' : 'Send sign-in link';
+  $('lgMode').textContent = pw ? 'Email me a sign-in link instead' : 'Sign in with password instead';
+  $('lgMsg').textContent = ''; $('lgMsg').className = 'msg';
+  if (pw) setTimeout(() => $('lgPass').focus(), 50);
+}
+$('lgMode').onclick = () => setLoginMode(!pwMode);
+$('lgPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('lgSend').click(); });
 $('lgSend').onclick = async () => {
   const email = $('lgEmail').value.trim(); const msg = $('lgMsg');
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.className = 'msg bad'; msg.textContent = 'Please enter a valid email.'; return; }
-  $('lgSend').disabled = true; msg.className = 'msg'; msg.textContent = 'Sending…';
   try { localStorage.setItem('tax-otg-email', email); } catch (e) {}
+  $('lgSend').disabled = true; msg.className = 'msg';
+  if (pwMode) {
+    msg.textContent = 'Signing in…';
+    const { error } = await SB.auth.signInWithPassword({ email, password: $('lgPass').value });
+    $('lgSend').disabled = false;
+    if (error) { msg.className = 'msg bad'; msg.textContent = /invalid/i.test(error.message) ? 'Wrong email or password. No password yet? Use the email link once, then Menu → Set password.' : error.message; }
+    else { msg.textContent = ''; }   // onAuthStateChange opens the app
+    return;
+  }
+  msg.textContent = 'Sending…';
   const { error } = await SB.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: location.origin + location.pathname } });
   $('lgSend').disabled = false;
   if (error) {
     msg.className = 'msg bad';
-    msg.textContent = /signups? not allowed|not found|otp_disabled/i.test(error.message) ? "This email isn't registered for Tax OTG." : 'Could not send: ' + error.message;
+    msg.textContent = /signups? not allowed|not found|otp_disabled/i.test(error.message) ? "This email isn't registered for Tax OTG."
+      : /rate limit/i.test(error.message) ? 'Too many emails sent — please wait up to an hour, or sign in with your password.'
+      : 'Could not send: ' + error.message;
   } else {
     msg.className = 'msg ok'; msg.textContent = '✓ Check your inbox and tap the sign-in link. You can close this page.';
   }
+};
+
+/* ---------------------------- Set password ---------------------------- */
+$('lnkPassword').onclick = e => { e.preventDefault(); $('menu').classList.remove('open'); $('pw1').value = $('pw2').value = ''; $('pwMsg').textContent = ''; $('pwDlg').showModal(); };
+$('pwCancel').onclick = () => $('pwDlg').close();
+$('pwForm').onsubmit = async e => {
+  e.preventDefault();
+  const a = $('pw1').value, b = $('pw2').value;
+  if (a.length < 8) { $('pwMsg').textContent = 'Use at least 8 characters.'; return; }
+  if (a !== b) { $('pwMsg').textContent = "Passwords don't match."; return; }
+  $('pwSave').disabled = true;
+  const { error } = await SB.auth.updateUser({ password: a });
+  $('pwSave').disabled = false;
+  if (error) { $('pwMsg').textContent = error.message; return; }
+  $('pwDlg').close(); toast('Password saved — you can now sign in with it');
 };
 
 async function loadApp() {
