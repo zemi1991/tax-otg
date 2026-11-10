@@ -502,22 +502,22 @@
 const CATEGORIES = [
   { code: 'MED', name: 'Medical (self, spouse, child)', short: 'Medical', limit: 10000, claimable: true,
     note: 'Incl. medical check-ups, vaccination, dental, mental health, fertility treatment',
-    keywords: ['klinik','clinic','hospital','farmasi','pharmacy','doktor','doctor','dental','gigi','vaksin','vaccine','vaccination','medical','perubatan','ubat','specialist','pakar','kpj','pantai','sunway medical','columbia asia','gleneagles','alpro','caring pharmacy','big pharmacy','aa pharmacy','mental','psikologi','psychology','therapy','fisioterapi','physio','ivf','fertility','kesuburan','lab test','pathlab','bp healthcare','qualitas','check-up','checkup','medical check'] },
+    keywords: ['klinik','clinic','hospital','farmasi','pharmacy','doktor','doctor','dental','gigi','vaksin','vaccine','vaccination','medical','perubatan','ubat','specialist','pakar','kpj','pantai','sunway medical','columbia asia','gleneagles','alpro','caring pharmacy','big pharmacy','aa pharmacy','mental','psikologi','psychology','therapy','fisioterapi','physio','ivf','fertility','kesuburan','lab test','pathlab','bp healthcare','qualitas','check-up','checkup','medical check', 'poliklinik', 'klinik pergigian', 'klinik kesihatan', 'hospital pakar', 'prince court', 'tung shin', 'pusat dialisis', 'dialysis', 'x-ray', 'scan mri', 'ultrasound', 'health screening', 'pemeriksaan kesihatan', 'optometrist', 'eye test', 'vaksinasi', 'klinik pakar'] },
   { code: 'PAR', name: "Parents' medical", short: "Parents' medical", limit: 8000, claimable: true,
     note: 'Medical treatment, special needs & carer expenses for parents',
     keywords: ['ibu bapa','ibubapa','emak','abah','parents','parent','mother','father','nursing home','rumah jagaan','caregiver','carer'] },
   { code: 'LIF', name: 'Lifestyle (books, gadgets, internet)', short: 'Lifestyle', limit: 2500, claimable: true,
     note: 'Books, magazines, computer, smartphone, tablet, internet subscription, skills courses',
-    keywords: ['popular','mph','kinokuniya','borders','bookxcess','buku','book','books','majalah','magazine','laptop','komputer','computer','telefon','phone','smartphone','tablet','ipad','iphone','macbook','samsung','apple','huawei','xiaomi','oppo','vivo','harvey norman','senheng','machines','switch','all it','internet','unifi','maxis','celcom','digi','umobile','u mobile','yes 5g','time fibre','broadband','fibre','online course','udemy','coursera'] },
+    keywords: ['popular','mph','kinokuniya','borders','bookxcess','buku','book','books','majalah','magazine','laptop','komputer','computer','telefon','phone','smartphone','tablet','ipad','iphone','macbook','samsung','apple','huawei','xiaomi','oppo','vivo','harvey norman','senheng','machines','switch','all it','internet','unifi','maxis','celcom','digi','umobile','u mobile','yes 5g','time fibre','broadband','fibre','online course','udemy','coursera', 'jaya bookstore', 'times bookstore', 'big bad wolf', 'book cafe', 'kindle', 'apple store', 'urban republic', 'directd', 'samsung store', 'galaxy tab', 'celcomdigi', 'time dotcom', 'maxis fibre', 'home fibre', 'langganan internet', 'internet bill', 'pc fair', 'printer'] },
   { code: 'SPT', name: 'Sports (equipment, gym, activities)', short: 'Sports', limit: 1000, claimable: true,
     note: 'Sports equipment, gym membership, court rental, competition fees',
-    keywords: ['decathlon','al-ikhsan','al ikhsan','sports direct','jd sports','gym','gim','fitness','anytime fitness','celebrity fitness','fitness first','badminton','futsal','gelanggang','court','sukan','sport','sports','raket','racket','running','marathon','larian','basikal','bicycle','cycling','swimming','renang','golf','yoga','pilates','jersi','jersey','nike','adidas','puma','asics','under armour'] },
+    keywords: ['decathlon','al-ikhsan','al ikhsan','sports direct','jd sports','gym','gim','fitness','anytime fitness','celebrity fitness','fitness first','badminton','futsal','gelanggang','court','sukan','sport','sports','raket','racket','running','marathon','larian','basikal','bicycle','cycling','swimming','renang','golf','yoga','pilates','jersi','jersey','nike','adidas','puma','asics','under armour', 'sports planet', 'royal sporting house', 'kasut sukan', 'kolam renang', 'swimming pool', 'fun run', 'taekwondo', 'karate', 'silat', 'martial arts', 'golf club', 'driving range', 'camp5', 'rock climbing', 'stadium', 'pickleball', 'squash', 'tennis', 'bowling'] },
   { code: 'EDU', name: 'Education fees (self)', short: 'Education', limit: 7000, claimable: true,
     note: "Master's / PhD, or recognised courses at diploma level and above; upskilling courses",
-    keywords: ['universiti','university','kolej','college','uitm','oum','unitar','open university','yuran pengajian','tuition fee','master','masters','sarjana','phd','diploma','semester','upskilling'] },
+    keywords: ['universiti','university','kolej','college','uitm','oum','unitar','open university','yuran pengajian','tuition fee','master','masters','sarjana','phd','diploma','semester','upskilling', 'ukm', 'upm', 'usm', 'uum', 'utm', 'unimas', 'ums', 'upsi', 'uthm', 'unimap', 'taylor\'s', 'sunway university', 'monash', 'nottingham', 'apu', 'mmu', 'help university', 'segi', 'ucsi', 'inti', 'wou', 'yuran universiti'] },
   { code: 'CHC', name: 'Childcare / kindergarten', short: 'Childcare', limit: 3000, claimable: true,
     note: 'Registered childcare centre / kindergarten fees for children aged 6 and below',
-    keywords: ['taska','tadika','kindergarten','nursery','childcare','child care','preschool','pre-school','daycare','little caliphs','genius aulad','smart reader','q-dees','qdees'] },
+    keywords: ['taska','tadika','kindergarten','nursery','childcare','child care','preschool','pre-school','daycare','little caliphs','genius aulad','smart reader','q-dees','qdees', 'pusat jagaan', 'kindy', 'montessori', 'transit', 'yuran tadika', 'yuran taska'] },
   { code: 'BRF', name: 'Breastfeeding equipment', short: 'Breastfeeding', limit: 1000, claimable: true,
     note: 'Breast pump, cooler bag etc. for child aged 2 and below (once every 2 years)',
     keywords: ['breast pump','pam susu','penyusuan','breastfeeding','medela','spectra','autumnz','cooler bag'] },
@@ -547,10 +547,10 @@ const CATEGORIES = [
     keywords: ['housing loan interest','home loan interest','faedah pinjaman rumah'] },
   { code: 'DON', name: 'Donations / zakat', short: 'Donations / zakat', limit: null, claimable: true,
     note: 'Approved donations (deduction, up to 10% of aggregate income) / zakat & fitrah (rebate)',
-    keywords: ['derma','donation','sumbangan','zakat','fitrah','lzs','maiwp','pusat pungutan zakat','masjid','mosque','surau','wakaf','yayasan','charity','foundation'] },
+    keywords: ['derma','donation','sumbangan','zakat','fitrah','lzs','maiwp','pusat pungutan zakat','masjid','mosque','surau','wakaf','yayasan','charity','foundation', 'lembaga zakat', 'zakat selangor', 'majlis agama', 'baitulmal', 'tabung', 'mercy malaysia', 'unicef', 'ikram', 'pertubuhan', 'persatuan'] },
   { code: 'NON', name: 'Not claimable', short: 'Not claimable', limit: null, claimable: false,
     note: 'Everyday spending (food, fuel, groceries, etc.)',
-    keywords: [] }
+    keywords: ['lotus\'s', 'lotus', 'tesco', 'giant', 'mydin', 'aeon', 'aeon big', 'jaya grocer', 'village grocer', 'cold storage', 'mercato', '99 speedmart', 'speedmart', 'kk mart', 'kk super mart', '7-eleven', '7 eleven', 'familymart', 'family mart', 'econsave', 'nsk', 'the store', 'pasaraya', 'supermarket', 'hypermarket', 'kedai runcit', 'mr diy', 'mr. diy', 'eco shop', 'daiso', 'ikea', 'petronas', 'shell', 'petron', 'caltex', 'bhp', 'setel', 'petrol', 'minyak', 'mcdonald', 'mcd', 'kfc', 'pizza hut', 'domino', 'subway', 'starbucks', 'zus coffee', 'tealive', 'secret recipe', 'marrybrown', 'texas chicken', 'a&w', 'sushi king', 'nasi kandar', 'mamak', 'restoran', 'restaurant', 'kedai makan', 'cafe', 'kopitiam', 'bakery', 'grabfood', 'foodpanda', 'shopeefood', 'grab', 'touch n go', 'tng', 'toll', 'tol', 'parking', 'parkir', 'rapidkl', 'ktm', 'airasia', 'malaysia airlines', 'tnb', 'tenaga nasional', 'air selangor', 'indah water', 'astro', 'netflix', 'spotify', 'uniqlo', 'padini', 'zara', 'h&m', 'watsons', 'guardian', 'salon', 'laundry', 'dobi'] }
 ];
 const CAT_BY_CODE = Object.fromEntries(CATEGORIES.map(c => [c.code, c]));
 const CAT_BY_NAME = Object.fromEntries(CATEGORIES.map(c => [c.name, c]));
@@ -640,35 +640,89 @@ let ocrWorker = null;
 function loadScript(src) {
   return new Promise((resolve, reject) => { const el = document.createElement('script'); el.src = src; el.onload = resolve; el.onerror = () => reject(new Error('Could not load the scanner — check your connection')); document.head.appendChild(el); });
 }
-async function ocrScan(f) {
-  if (f.mimeType === 'application/pdf') throw new Error("PDFs can't be scanned on the phone — please fill in the details");
+async function ocrImage(src) {
   if (!window.Tesseract) await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js');
   if (!ocrWorker) ocrWorker = await Tesseract.createWorker('eng');
-  const { data } = await ocrWorker.recognize('data:' + f.mimeType + ';base64,' + f.data);
-  return Object.assign(parseReceiptText(data.text || ''), { engine: 'on-device OCR' });
+  const { data } = await ocrWorker.recognize(src);
+  return data.text || '';
+}
+
+// PDF receipts / e-wallet slips: read the text layer with pdf.js; if the PDF is a scan (no text), OCR page 1.
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+async function readPdf(b64) {
+  if (!window.pdfjsLib) { await loadScript(PDFJS + 'pdf.min.js'); pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; }
+  const pdf = await pdfjsLib.getDocument({ data: Uint8Array.from(atob(b64), c => c.charCodeAt(0)) }).promise;
+  let text = '';
+  for (let n = 1; n <= Math.min(pdf.numPages, 2); n++) {
+    const tc = await (await pdf.getPage(n)).getTextContent();
+    // Rebuild lines from glyph positions: new line when y changes, space only where there's a visible gap
+    let prev = null;
+    for (const it of tc.items) {
+      if (!it.str) { if (it.hasEOL) { text += '\n'; prev = null; } continue; }
+      const x = it.transform[4], y = it.transform[5];
+      if (prev && Math.abs(y - prev.y) > 2) text += '\n';
+      else if (prev && x - prev.end > 1.5 && !/\s$/.test(text) && !/^\s/.test(it.str)) text += ' ';
+      text += it.str;
+      prev = { y, end: x + (it.width || 0) };
+      if (it.hasEOL) { text += '\n'; prev = null; }
+    }
+    text += '\n';
+  }
+  if (text.replace(/\s/g, '').length >= 20) return { text, engine: 'PDF text' };
+  const page = await pdf.getPage(1); const vp = page.getViewport({ scale: 2.5 });
+  const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height;
+  await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+  return { text: await ocrImage(cv.toDataURL('image/png')), engine: 'on-device OCR' };
+}
+
+async function ocrScan(f) {
+  if (f.mimeType === 'application/pdf') {
+    const { text, engine } = await readPdf(f.data);
+    return Object.assign(parseReceiptText(text), { engine });
+  }
+  const text = await ocrImage('data:' + f.mimeType + ';base64,' + f.data);
+  return Object.assign(parseReceiptText(text), { engine: 'on-device OCR' });
 }
 
 /** Heuristic parser for OCR text: merchant, date, total. Category is suggested client-side. */
 function parseReceiptText(text) {
-  const lines = String(text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const lines = String(text || '').split(/\r?\n/).map(l => l.replace(/\s+/g, ' ').trim()).filter(Boolean);
   const money = s => {
     const m = String(s).replace(/(\d),(\d{3})/g, '$1$2').match(/(?:RM\s*)?(\d+\.\d{2})(?!\d)/gi);
     return m ? m.map(x => parseFloat(x.replace(/[^\d.]/g, ''))) : [];
   };
 
-  // Merchant: first line with real letters that isn't a header like "tax invoice"
-  const skip = /^(tax invoice|invoice|receipt|resit|official receipt|cash sale|simplified|welcome|selamat)/i;
-  const merchant = (lines.find(l => /[a-z]{3,}/i.test(l) && !skip.test(l) && l.length <= 60) || '').replace(/\s{2,}/g, ' ');
+  // Label → value pairs (value on the same line after ":" or on the next line)
+  const valueAfter = re => {
+    for (let i = 0; i < lines.length; i++) {
+      const l = lines[i], mm = l.match(re);
+      if (!mm) continue;
+      const after = l.slice(mm.index + mm[0].length);
+      if (!after.trim()) { if (i + 1 < lines.length) return lines[i + 1]; continue; }   // label alone → value on next line
+      if (/^\s*[:\-–]/.test(after)) { const rest = after.replace(/^[\s:\-–]+/, '').trim(); if (rest) return rest; }  // "Label: value"
+      // otherwise the label word is part of a longer phrase (e.g. "DuitNow transaction ID") → not a label
+    }
+    return '';
+  };
+
+  // Merchant: explicit labels first (e-wallets / bank slips), else first sensible line
+  const labelled = valueAfter(/^(merchant(\s*name)?|paid\s*to|pay\s*to|payee|recipient(\s*name)?|nama\s*(peniaga|penerima)|kepada|bayar\s*kepada|duitnow(\s*qr)?|store(\s*name)?|outlet)\b/i);
+  const skip = /^(tax invoice|invoice|receipt|resit|official receipt|cash sale|simplified|welcome|selamat|thank|terima kasih|payment (receipt|successful)|transaction|full name|name|nama|email|e-mel|created|date|tarikh|time|masa|reference|ref|payment method|status|copyright|page|amount|paid amount|total)/i;
+  const looksLikeData = l => /@|^\d|^[A-Z0-9]{12,}$|\d{6,}/.test(l);
+  const merchant = (labelled && !looksLikeData(labelled) ? labelled
+    : (lines.find(l => /[a-z]{3,}/i.test(l) && !skip.test(l) && !looksLikeData(l) && l.length <= 60) || ''))
+    .replace(/\s*(copyright|all rights reserved|©).*$/i, '').replace(/\s*\(\s*/g, ' (').replace(/\s{2,}/g, ' ').trim();
 
   // Total: prefer lines labelled total / jumlah / amount due (not subtotal), take the last match
   let amount = 0;
-  const totalRe = /(grand\s*total|net\s*total|total\s*(amount|due|payable|incl)?|jumlah(\s*besar)?|amount\s*(due|paid)|\bnett?\b)/i;
+  const totalRe = /(grand\s*total|net\s*total|total\s*(amount|due|payable|paid|incl)?|jumlah(\s*(besar|bayaran|dibayar))?|amount\s*(due|paid)|paid\s*amount|payment\s*amount|transfer\s*amount|amaun|\bnett?\b)/i;
   for (let i = 0; i < lines.length; i++) {
     if (totalRe.test(lines[i]) && !/sub\s*-?\s*total|discount|rounding|gst|sst|tax\b|change|baki|qty/i.test(lines[i])) {
       const vals = money(lines[i]).concat(i + 1 < lines.length ? money(lines[i + 1]) : []);
       if (vals.length) amount = vals[0];
     }
   }
+  if (!amount) { const v = money(valueAfter(/^(amount|total)\b/i)); if (v.length) amount = v[0]; }
   if (!amount) { const all = money(lines.join(' ')); if (all.length) amount = Math.max.apply(null, all); }
 
   // Date: DD/MM/YYYY, DD-MM-YY, YYYY-MM-DD, or "12 Jan 2026"
@@ -761,6 +815,38 @@ function suggestCategory(text) {
     }
   }
   return best;
+}
+
+// Normalise a merchant name so "KLINIK DR. ALI SDN BHD" and "Klinik Dr Ali" match
+const normMerchant = m => String(m || '').toLowerCase()
+  .replace(/\b(sdn\.?\s*bhd\.?|bhd\.?|enterprise|trading|plt|\(m\)|malaysia|branch|cawangan)\b/g, ' ')
+  .replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+// 1) Learned: reuse the category you gave this merchant before (most recent wins)
+function learnedCategory(merchant) {
+  const key = normMerchant(merchant);
+  if (key.length < 3) return null;
+  const hits = state.expenses.filter(e => {
+    const k = normMerchant(e.merchant);
+    return k && (k === key || (k.length >= 5 && key.length >= 5 && (k.includes(key) || key.includes(k))));
+  }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return hits.length ? (CAT_BY_CODE[hits[0].categoryCode] || null) : null;
+}
+
+// Decide a category automatically. Returns { cat, how: 'learned' | 'keyword' | 'default' } or null.
+function autoCategory({ merchant = '', note = '', text = '' } = {}) {
+  const learned = learnedCategory(merchant);
+  if (learned) return { cat: learned, how: 'learned' };
+  const kw = suggestCategory(merchant + ' ' + note) || suggestCategory(text);   // merchant/note first, then full receipt text
+  if (kw) return { cat: kw, how: 'keyword' };
+  if ((merchant + note + text).trim().length >= 3) return { cat: CAT_BY_CODE.NON, how: 'default' };
+  return null;
+}
+function autoCategoryMessage(r, merchant) {
+  if (!r) return '';
+  if (r.how === 'learned') return '✨ ' + r.cat.short + ' — same as your earlier “' + merchant.trim() + '” receipt';
+  if (r.how === 'keyword') return '✨ Auto-categorised as ' + r.cat.short + ' — tap Category to change';
+  return 'No tax relief detected — set as Not claimable (tap Category to change)';
 }
 
 /* ---------------------------- Filters ---------------------------- */
@@ -940,7 +1026,7 @@ function scrollToEl(id) { $(id).scrollIntoView({ behavior: 'smooth', block: 'sta
 
 /* ---------------------------- Sheet form ---------------------------- */
 function openForm(exp) {
-  state.editing = exp || null; state.file = null; state.removeFile = false; state.userPickedCat = !!exp; state.dateTouched = !!exp; state.scanToken++;
+  state.editing = exp || null; state.file = null; state.removeFile = false; state.userPickedCat = !!exp; state.dateTouched = !!exp; state.scanToken++; state.scanText = ''; state.autoMsg = '';
   $('dlgTitle').textContent = exp ? 'Edit Expense' : 'New Expense';
   $('btnDelete').classList.toggle('hidden', !exp);
   $('iCat').innerHTML = '<option value="">Choose…</option>' + CATEGORIES.map(c =>
@@ -961,9 +1047,10 @@ function openForm(exp) {
 
 function onTextInput() {
   if (state.userPickedCat) return;
-  const c = suggestCategory($('iMerchant').value + ' ' + $('iDesc').value);
-  if (c) { $('iCat').value = c.code; $('suggest').textContent = '✨ Auto-categorised as ' + c.short + ' — tap Category to change'; }
-  else { $('suggest').textContent = ''; }
+  const merchant = $('iMerchant').value;
+  const r = autoCategory({ merchant, note: $('iDesc').value, text: state.scanText || '' });
+  $('iCat').value = r ? r.cat.code : '';
+  $('suggest').textContent = autoCategoryMessage(r, merchant);
 }
 
 function showPreview(f) {
@@ -1024,18 +1111,21 @@ async function scanCurrentFile() {
     const r = await api('scanReceipt', file, cats);
     if (token !== state.scanToken || !$('dlg').open) return; // user moved on
     const flash = el => { el.classList.remove('filled'); void el.offsetWidth; el.classList.add('filled'); };
-    let filled = 0;
+    let filled = 0; state.autoMsg = '';
     if (r.amount > 0 && !(parseFloat($('iAmount').value) > 0)) { $('iAmount').value = r.amount.toFixed(2); flash($('iAmount')); filled++; }
     if (r.merchant && !$('iMerchant').value.trim()) { $('iMerchant').value = r.merchant; flash($('iMerchant').closest('.frow')); filled++; }
     if (r.date && !state.dateTouched) { $('iDate').value = r.date; flash($('iDate').closest('.frow')); filled++; }
     if (r.description && !$('iDesc').value.trim()) { $('iDesc').value = r.description; filled++; }
     if (!state.userPickedCat) {
-      const c = (r.categoryCode && CAT_BY_CODE[r.categoryCode]) || suggestCategory([r.merchant, r.description, r.rawText].join(' '));
-      if (c) { $('iCat').value = c.code; flash($('iCat').closest('.frow')); filled++; }
+      state.scanText = r.rawText || '';
+      const merchant = $('iMerchant').value || r.merchant || '';
+      const ac = (r.categoryCode && CAT_BY_CODE[r.categoryCode]) ? { cat: CAT_BY_CODE[r.categoryCode], how: 'keyword' }
+        : autoCategory({ merchant, note: $('iDesc').value || r.description || '', text: r.rawText || '' });
+      if (ac) { $('iCat').value = ac.cat.code; flash($('iCat').closest('.frow')); filled++; state.autoMsg = autoCategoryMessage(ac, merchant); }
     }
     info.textContent = label;
     $('suggest').textContent = filled
-      ? '✨ Filled from receipt by ' + (r.engine || 'scan') + ' — please double-check'
+      ? '✨ Filled from receipt — please double-check.' + (state.autoMsg ? ' ' + state.autoMsg.replace(/^✨ /, '') : '')
       : "Couldn't read details from this receipt — please fill in manually";
   } catch (e) {
     if (token !== state.scanToken) return;
