@@ -30,6 +30,7 @@
     --tile: rgba(255,255,255,.62);
     --card: rgba(255,255,255,.86);
     --sheet: rgba(250,252,252,.92);
+    --bar: rgba(238,245,246,.96);
     --glass-border: rgba(255,255,255,.9);
     --hairline: rgba(15,40,50,.08);
     --fill: rgba(15,40,50,.05);
@@ -48,7 +49,7 @@
       --brand: #2cc4a8; --brand-deep: #1aa39b; --brand-ink: #4fd8bf; --brand-soft: rgba(44,196,168,.16);
       --bg: #071113;
       --blob1: #0b3a33; --blob2: #0e2a4a; --blob3: #3a1630; --blob4: #10301c;
-      --tile: rgba(28,34,36,.6); --card: rgba(30,36,38,.82); --sheet: rgba(24,30,32,.94);
+      --tile: rgba(28,34,36,.6); --card: rgba(30,36,38,.82); --sheet: rgba(24,30,32,.94); --bar: rgba(7,17,19,.96);
       --glass-border: rgba(255,255,255,.07);
       --hairline: rgba(255,255,255,.08); --fill: rgba(255,255,255,.06);
       --text: #eef4f4; --text-2: #a3b0b3; --text-3: #6d7a7d;
@@ -64,7 +65,7 @@
     --brand: #2cc4a8; --brand-deep: #1aa39b; --brand-ink: #4fd8bf; --brand-soft: rgba(44,196,168,.16);
     --bg: #071113;
     --blob1: #0b3a33; --blob2: #0e2a4a; --blob3: #3a1630; --blob4: #10301c;
-    --tile: rgba(28,34,36,.6); --card: rgba(30,36,38,.82); --sheet: rgba(24,30,32,.94);
+    --tile: rgba(28,34,36,.6); --card: rgba(30,36,38,.82); --sheet: rgba(24,30,32,.94); --bar: rgba(7,17,19,.96);
     --glass-border: rgba(255,255,255,.07);
     --hairline: rgba(255,255,255,.08); --fill: rgba(255,255,255,.06);
     --text: #eef4f4; --text-2: #a3b0b3; --text-3: #6d7a7d;
@@ -111,15 +112,20 @@
   .brand { margin: 0; flex: 1; min-width: 0; font-size: 26px; line-height: 1.05; font-weight: 800; letter-spacing: -.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand .otg { color: var(--brand); }
   .menu-wrap { position: relative; width: 48px; height: 48px; flex: none; }
-  /* When the header scrolls away, the ☰ button floats at the top-right */
-  .menu-wrap.float .menu-btn {
-    position: fixed; z-index: 20; top: calc(12px + env(safe-area-inset-top));
-    right: max(16px, calc((100vw - 980px) / 2 + 18px));
-    box-shadow: 0 8px 24px rgba(10, 60, 70, .18); animation: popIn .2s ease;
+  /* Compact top bar (Threads-style): appears when the big header scrolls away — icon centred, ☰ on the right */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 19;
+    padding: calc(8px + env(safe-area-inset-top)) 18px 8px;
+    background: var(--bar); -webkit-backdrop-filter: blur(20px) saturate(170%); backdrop-filter: blur(20px) saturate(170%);
+    border-bottom: 1px solid var(--hairline);
+    transform: translateY(-110%); transition: transform .22s ease; pointer-events: none;
   }
-  .menu.glass { background: var(--bg); }   /* solid so the page behind doesn't show through */
-  .menu-wrap.float .menu { position: fixed; z-index: 21; top: calc(68px + env(safe-area-inset-top)); right: max(16px, calc((100vw - 980px) / 2 + 18px)); }
-  @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+  body.compact .topbar { transform: none; pointer-events: auto; }
+  .tb-inner { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
+  .tb-icon { grid-column: 2; justify-self: center; width: 38px; height: 38px; border-radius: 11px; overflow: hidden; border: 0; padding: 0; background: none; cursor: pointer; box-shadow: 0 4px 12px rgba(14,159,138,.28); }
+  .tb-icon svg { width: 100%; height: 100%; display: block; }
+  .tb-menu { grid-column: 3; justify-self: end; width: 42px; height: 42px; border-radius: 13px; }
+  body.compact .menu { position: fixed; z-index: 21; top: calc(64px + env(safe-area-inset-top)); right: max(16px, calc((100vw - 980px) / 2 + 18px)); }
   .menu-btn { width: 48px; height: 48px; border-radius: 16px; background: var(--card); display: grid; place-items: center; cursor: pointer; color: var(--text); }
   .menu-btn svg { width: 22px; height: 22px; }
   .menu { position: absolute; right: 0; top: 56px; z-index: 10; min-width: 230px; border-radius: 18px; background: var(--sheet); padding: 6px; display: none; }
@@ -336,6 +342,14 @@
 </style>
 </head>
 <body>
+<div class="topbar" id="topbar">
+  <div class="tb-inner">
+    <button class="tb-icon" id="tbIcon" aria-label="Back to top"></button>
+    <button class="menu-btn glass tb-menu" id="tbMenu" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</div>
 <div class="wrap">
   <header>
         <div class="app-icon"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="tiG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#37d3b4"/><stop offset=".45" stop-color="#0e9f8a"/><stop offset="1" stop-color="#0a7f86"/></linearGradient><filter id="tiS" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#053b3e" flood-opacity=".28"/></filter></defs><rect width="512" height="512" fill="url(#tiG)"/><g filter="url(#tiS)" transform="translate(222 286) rotate(-26) translate(-100 -125)">  <path d="M12 0 H188 Q200 0 200 12 V222 L175 250 L150 222 L125 250 L100 222 L75 250 L50 222 L25 250 L0 222 V12 Q0 0 12 0 Z" fill="#ffffff" />  <g fill="none" stroke="#0e9f8a" stroke-width="14" stroke-linecap="round"><path d="M36 62 q16 -16 32 0 t32 0 t32 0 t32 0"/><path d="M36 108 q16 -16 32 0 t32 0 t32 0 t32 0"/><path d="M36 154 q16 -16 32 0 t32 0 t32 0 t32 0"/></g></g><g transform="translate(362 166)" filter="url(#tiS)">  <circle r="84" fill="none" stroke="#ffffff" stroke-width="6" opacity=".55"/><circle r="68" fill="#ffffff" stroke="#ffffff" stroke-width="10"/>  <path d="M-30 2 L-8 24 L32 -22" fill="none" stroke="#0e9f8a" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></g></svg></div>
@@ -1486,11 +1500,18 @@ async function loadApp() {
   }
 }
 
-// Float the ☰ button once the header has scrolled out of view
+// Threads-style header: when the big header scrolls away, show the compact bar (icon + ☰)
 (() => {
-  const wrap = document.querySelector('.menu-wrap'), head = document.querySelector('header');
-  const update = () => wrap.classList.toggle('float', head.getBoundingClientRect().bottom < 4);
+  const head = document.querySelector('header');
+  $('tbIcon').innerHTML = document.querySelector('.app-icon').innerHTML.replace(/id="ti(G|S)"/g, 'id="tb$1"').replace(/url\(#ti(G|S)\)/g, 'url(#tb$1)');
+  let compact = false;
+  const update = () => {
+    const c = head.getBoundingClientRect().bottom < 0;
+    if (c !== compact) { compact = c; document.body.classList.toggle('compact', c); }
+  };
   window.addEventListener('scroll', update, { passive: true }); update();
+  $('tbIcon').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  $('tbMenu').onclick = e => { e.stopPropagation(); $('menu').classList.toggle('open'); };
 })();
 
 // Always open at the top (don't restore the old scroll position on refresh / reopen)
