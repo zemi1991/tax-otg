@@ -1085,7 +1085,12 @@ function renderChips(period) {
   $('chips').innerHTML = chip('all', 'All', period.length) + chip('CLAIM', 'Claimable', claimN, cssVar('--green')) +
     cats.map(c => chip(c.code, c.short, counts[c.code] || 0, catColor(c))).join('');
   const on = $('chips').querySelector('.chip.on');
-  if (on) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  // keep the active chip visible by scrolling the chip row only (never the page)
+  if (on) {
+    const row = $('chips'), l = on.offsetLeft - row.offsetLeft, r = l + on.offsetWidth;
+    if (l < row.scrollLeft) row.scrollLeft = l - 8;
+    else if (r > row.scrollLeft + row.clientWidth) row.scrollLeft = r - row.clientWidth + 8;
+  }
 }
 
 function renderRows(list) {
