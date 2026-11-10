@@ -328,10 +328,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       </button>
       <div class="menu glass" id="menu" role="menu">
-        <a href="#" id="lnkExport" role="menuitem">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5"/><path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>Export to Excel (CSV)</a>
         <a href="#" id="lnkZip" role="menuitem">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v6M9.5 13.5 12 16l2.5-2.5"/></svg>Download receipts (ZIP)</a>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M12 10v6M9.5 13.5 12 16l2.5-2.5"/></svg>Export all data</a>
         <a href="https://www.hasil.gov.my" target="_blank" rel="noopener" role="menuitem">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>LHDN (hasil.gov.my)</a>
         <a href="#" id="lnkPassword" role="menuitem" class="hidden">
@@ -1275,60 +1273,80 @@ function applyMeta(d) {
 let shownOnce = false;
 function showMain() { if (!shownOnce) { shownOnce = true; requestAnimationFrame(() => window.scrollTo(0, 0)); } $('login').classList.add('hidden'); $('loading').classList.add('hidden'); $('main').classList.remove('hidden'); $('btnAdd').classList.remove('hidden'); }
 
-function csvOf(list) {
-  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
-  const rows = [['Date', 'Merchant', 'Description', 'Category', 'Category Code', 'Amount (RM)', 'Claimable', 'Receipt file']]
-    .concat(list.slice().sort((a, b) => a.date.localeCompare(b.date))
-      .map(e => [e.date, e.merchant, e.description, catOf(e).name, catOf(e).code, e.amount.toFixed(2), catOf(e).claimable ? 'Yes' : 'No', e.zipName || (e.fileId ? 'Yes' : 'No')]));
-  return '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n');
-}
 function downloadBlob(blob, name) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
-function exportCsv() {
-  downloadBlob(new Blob([csvOf(state.expenses)], { type: 'text/csv;charset=utf-8' }), 'tax-otg-' + new Date().toISOString().slice(0, 10) + '.csv');
-  toast('Exported ' + state.expenses.length + ' records');
+
+/* ---------------------------- Export all data (ZIP) ---------------------------- */
+// Tax-OTG-export-<date>.zip
+//   2026/
+//     Receipts/<Category>/<date>_<merchant>_RM<amount>.<ext>
+//     Tax-OTG-2026.xlsx   (sheets: Records, Summary)
+//   2025/ ...
+function workbookForYear(yr, list) {
+  const rows = list.slice().sort((a, b) => a.date.localeCompare(b.date)).map(e => ({
+    'Date': e.date, 'Merchant': e.merchant, 'Description': e.description,
+    'Category': catOf(e).name, 'Claimable': catOf(e).claimable ? 'Yes' : 'No',
+    'Amount (RM)': Math.round(e.amount * 100) / 100, 'Receipt file': e.zipName || ''
+  }));
+  const recs = XLSX.utils.json_to_sheet(rows, { header: ['Date', 'Merchant', 'Description', 'Category', 'Claimable', 'Amount (RM)', 'Receipt file'] });
+  recs['!cols'] = [{ wch: 11 }, { wch: 30 }, { wch: 30 }, { wch: 36 }, { wch: 10 }, { wch: 13 }, { wch: 60 }];
+  const sum = [];
+  let tSpent = 0, tRelief = 0;
+  CATEGORIES.forEach(c => {
+    const items = list.filter(e => catOf(e).code === c.code);
+    if (!items.length) return;
+    const spent = items.reduce((s, e) => s + e.amount, 0);
+    const relief = !c.claimable ? 0 : (c.limit ? Math.min(spent, c.limit) : spent);
+    tSpent += spent; tRelief += relief;
+    sum.push({ 'Category': c.name, 'Receipts': items.length, 'Total spent (RM)': +spent.toFixed(2),
+      'Limit (RM)': c.claimable ? (c.limit || 'No fixed limit') : '-', 'Est. relief (RM)': +relief.toFixed(2) });
+  });
+  sum.push({ 'Category': 'TOTAL', 'Receipts': list.length, 'Total spent (RM)': +tSpent.toFixed(2), 'Limit (RM)': '', 'Est. relief (RM)': +tRelief.toFixed(2) });
+  const summ = XLSX.utils.json_to_sheet(sum);
+  summ['!cols'] = [{ wch: 38 }, { wch: 10 }, { wch: 17 }, { wch: 16 }, { wch: 16 }];
+  XLSX.utils.sheet_add_aoa(summ, [[], ['Estimate only — limits based on LHDN individual reliefs (YA 2025). Verify at hasil.gov.my.']], { origin: -1 });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, recs, 'Records');
+  XLSX.utils.book_append_sheet(wb, summ, 'Summary');
+  return XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
 }
 
-/* ---------------------------- Download all receipts as ZIP ---------------------------- */
-// Uses the Year filter on the dashboard ("All years" = everything).
-// ZIP layout: Tax-OTG-<year>/<Category>/<date>_<merchant>_RM<amount>.<ext> + records.csv
-async function downloadReceiptsZip() {
-  const yr = state.year;
-  const list = state.expenses.filter(e => yr === 'all' || e.date.slice(0, 4) === yr);
+async function exportAllData() {
+  const list = state.expenses.slice();
+  if (!list.length) { toast('No data to export yet'); return; }
   const withFile = list.filter(e => e.fileId || e.receiptUrl);
-  const label = yr === 'all' ? 'all years' : yr;
-  if (!withFile.length) { toast('No receipt photos/PDFs for ' + label); return; }
-  if (!confirm(`Download ${withFile.length} receipt file(s) for ${label} as one ZIP?\n(Includes a records.csv list.)`)) return;
+  const years = [...new Set(list.map(e => e.date.slice(0, 4)))].sort();
+  if (!confirm(`Export all data?\n\n${list.length} records · ${withFile.length} receipt files · ${years.length} year(s): ${years.join(', ')}\n\nOne ZIP with a folder per year (receipts by category + Excel file).`)) return;
   try {
+    toast('Preparing export…');
     if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
-    // fresh links for private files
+    if (!window.XLSX) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
     const urls = IS_LIVE ? await Live.signed(withFile.map(e => e.fileId)) : {};
-    const zip = new JSZip(); const root = 'Tax-OTG-' + (yr === 'all' ? 'all' : yr);
-    const used = new Set(); let done = 0, failed = 0;
+    const zip = new JSZip(); const used = new Set(); let done = 0, failed = 0;
     for (const e of withFile) {
-      toast(`Preparing ZIP… ${++done}/${withFile.length}`);
+      toast(`Adding receipts… ${++done}/${withFile.length}`);
       const url = (IS_LIVE ? urls[e.fileId] : '') || e.receiptUrl;
       try {
         const blob = await (await fetch(url)).blob();
         const ext = (e.fileId && (e.fileId.match(/\.[a-z0-9]{2,5}$/i) || [])[0]) || (blob.type === 'application/pdf' ? '.pdf' : blob.type === 'image/png' ? '.png' : '.jpg');
-        let name = `${catOf(e).short.replace(/[\\/:*?"<>|]/g, '-')}/${e.date}_${slug(e.merchant)}_RM${e.amount.toFixed(2)}`;
-        let n = name, i = 2; while (used.has(n + ext)) n = name + '_' + i++;
-        used.add(n + ext); e.zipName = n + ext;
-        zip.file(root + '/' + n + ext, blob);
+        const base = `Receipts/${catOf(e).short.replace(/[\\/:*?"<>|]/g, '-')}/${e.date}_${slug(e.merchant)}_RM${e.amount.toFixed(2)}`;
+        const yr = e.date.slice(0, 4);
+        let n = base, i = 2; while (used.has(yr + '/' + n + ext)) n = base + '_' + i++;
+        used.add(yr + '/' + n + ext); e.zipName = n + ext;
+        zip.file(yr + '/' + n + ext, blob);
       } catch (err) { failed++; }
     }
-    zip.file(root + '/records.csv', csvOf(list));
+    for (const yr of years) zip.file(`${yr}/Tax-OTG-${yr}.xlsx`, workbookForYear(yr, list.filter(e => e.date.slice(0, 4) === yr)));
     list.forEach(e => delete e.zipName);
     toast('Compressing…');
     const out = await zip.generateAsync({ type: 'blob' });
-    downloadBlob(out, root + '.zip');
-    toast(`Downloaded ${withFile.length - failed} receipt(s)` + (failed ? ` · ${failed} failed` : ''));
-  } catch (err) { toast('Could not create ZIP: ' + (err && err.message || err)); }
+    downloadBlob(out, 'Tax-OTG-export-' + new Date().toISOString().slice(0, 10) + '.zip');
+    toast(`Exported ${list.length} records · ${withFile.length - failed} receipts` + (failed ? ` · ${failed} failed` : ''));
+  } catch (err) { list.forEach(e => delete e.zipName); toast('Could not export: ' + (err && err.message || err)); }
 }
-$('lnkZip').onclick = e => { e.preventDefault(); $('menu').classList.remove('open'); downloadReceiptsZip(); };
-$('lnkExport').onclick = e => { e.preventDefault(); $('menu').classList.remove('open'); exportCsv(); };
+$('lnkZip').onclick = e => { e.preventDefault(); $('menu').classList.remove('open'); exportAllData(); };
 $('lnkSignOut').onclick = async e => {
   e.preventDefault();
   if (!confirm('Sign out of Tax OTG on this device?')) return;
