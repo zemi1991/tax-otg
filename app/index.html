@@ -1072,7 +1072,8 @@ function openForm(exp) {
   showPreview(exp && exp.receiptUrl ? { existing: true, url: exp.receiptUrl } : null);
   $('btnSave').disabled = false; $('btnSave').textContent = 'Save';
   $('dlg').showModal();
-  if (!exp) setTimeout(() => $('iAmount').focus(), 60);
+  // Don't pop up the keyboard: most receipts are filled by scanning
+  setTimeout(() => { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); }, 0);
 }
 
 // "Auto" category: resolved from the merchant / note / receipt text; falls back to Not claimable
