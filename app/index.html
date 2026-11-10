@@ -579,7 +579,7 @@ const Live = {
   user: null,
   rowToObj(r, urls) {
     return { id: r.id, date: r.date, merchant: r.merchant, description: r.description, category: r.category,
-      categoryCode: r.category_code, amount: Number(r.amount), claimable: r.claimable,
+      categoryCode: r.category_code, amount: Number(r.amount), claimable: r.claimable, createdAt: r.created_at,
       receiptUrl: (r.receipt_path && urls[r.receipt_path]) || '', fileId: r.receipt_path || '' };
   },
   // Private bucket → short-lived signed links for viewing receipts
@@ -826,11 +826,12 @@ const normMerchant = m => String(m || '').toLowerCase()
 function learnedCategory(merchant) {
   const key = normMerchant(merchant);
   if (key.length < 3) return null;
-  const hits = state.expenses.filter(e => {
+  // newest receipt date wins; on the same date, the most recently saved one wins
+  const hits = state.expenses.map((e, i) => ({ e, i })).filter(({ e }) => {
     const k = normMerchant(e.merchant);
     return k && (k === key || (k.length >= 5 && key.length >= 5 && (k.includes(key) || key.includes(k))));
-  }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  return hits.length ? (CAT_BY_CODE[hits[0].categoryCode] || null) : null;
+  }).sort((a, b) => (b.e.date || '').localeCompare(a.e.date || '') || (String(b.e.createdAt || '').localeCompare(String(a.e.createdAt || ''))) || b.i - a.i);
+  return hits.length ? (CAT_BY_CODE[hits[0].e.categoryCode] || null) : null;
 }
 
 // Decide a category automatically. Returns { cat, how: 'learned' | 'keyword' | 'default' } or null.
@@ -1029,15 +1030,15 @@ function openForm(exp) {
   state.editing = exp || null; state.file = null; state.removeFile = false; state.userPickedCat = !!exp; state.dateTouched = !!exp; state.scanToken++; state.scanText = ''; state.autoMsg = '';
   $('dlgTitle').textContent = exp ? 'Edit Expense' : 'New Expense';
   $('btnDelete').classList.toggle('hidden', !exp);
-  $('iCat').innerHTML = '<option value="">Choose…</option>' + CATEGORIES.map(c =>
+  $('iCat').innerHTML = '<option value="AUTO">✨ Auto</option>' + CATEGORIES.map(c =>
     `<option value="${c.code}">${esc(c.short)}${c.limit ? ' · max ' + fmt0(c.limit) : ''}</option>`).join('');
   const now = new Date(); const iso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   $('iDate').value = exp ? exp.date : iso;
   $('iAmount').value = exp ? exp.amount.toFixed(2) : '';
   $('iMerchant').value = exp ? exp.merchant : '';
   $('iDesc').value = exp ? exp.description : '';
-  $('iCat').value = exp ? catOf(exp).code : '';
-  $('suggest').textContent = '';
+  $('iCat').value = exp ? catOf(exp).code : 'AUTO';
+  $('suggest').textContent = exp ? '' : '✨ Auto — the app picks the tax category when you save';
   $('err').textContent = '';
   showPreview(exp && exp.receiptUrl ? { existing: true, url: exp.receiptUrl } : null);
   $('btnSave').disabled = false; $('btnSave').textContent = 'Save';
@@ -1045,12 +1046,21 @@ function openForm(exp) {
   if (!exp) setTimeout(() => $('iAmount').focus(), 60);
 }
 
+// "Auto" category: resolved from the merchant / note / receipt text; falls back to Not claimable
+function resolveAuto() {
+  return autoCategory({ merchant: $('iMerchant').value, note: $('iDesc').value, text: state.scanText || '' })
+    || { cat: CAT_BY_CODE.NON, how: 'default' };
+}
+function autoHint() {
+  const r = resolveAuto(), merchant = $('iMerchant').value.trim();
+  const why = r.how === 'learned' ? 'same as your earlier “' + merchant + '” receipt'
+    : r.how === 'keyword' ? 'detected from the receipt' : 'no tax relief detected';
+  return '✨ Auto → ' + r.cat.short + ' (' + why + ') · tap Category to change';
+}
 function onTextInput() {
-  if (state.userPickedCat) return;
-  const merchant = $('iMerchant').value;
-  const r = autoCategory({ merchant, note: $('iDesc').value, text: state.scanText || '' });
-  $('iCat').value = r ? r.cat.code : '';
-  $('suggest').textContent = autoCategoryMessage(r, merchant);
+  if ($('iCat').value !== 'AUTO') return;
+  $('suggest').textContent = (($('iMerchant').value + $('iDesc').value + (state.scanText || '')).trim())
+    ? autoHint() : '✨ Auto — the app picks the tax category when you save';
 }
 
 function showPreview(f) {
@@ -1116,13 +1126,8 @@ async function scanCurrentFile() {
     if (r.merchant && !$('iMerchant').value.trim()) { $('iMerchant').value = r.merchant; flash($('iMerchant').closest('.frow')); filled++; }
     if (r.date && !state.dateTouched) { $('iDate').value = r.date; flash($('iDate').closest('.frow')); filled++; }
     if (r.description && !$('iDesc').value.trim()) { $('iDesc').value = r.description; filled++; }
-    if (!state.userPickedCat) {
-      state.scanText = r.rawText || '';
-      const merchant = $('iMerchant').value || r.merchant || '';
-      const ac = (r.categoryCode && CAT_BY_CODE[r.categoryCode]) ? { cat: CAT_BY_CODE[r.categoryCode], how: 'keyword' }
-        : autoCategory({ merchant, note: $('iDesc').value || r.description || '', text: r.rawText || '' });
-      if (ac) { $('iCat').value = ac.cat.code; flash($('iCat').closest('.frow')); filled++; state.autoMsg = autoCategoryMessage(ac, merchant); }
-    }
+    state.scanText = r.rawText || '';
+    if ($('iCat').value === 'AUTO') { flash($('iCat').closest('.frow')); state.autoMsg = autoHint(); }
     info.textContent = label;
     $('suggest').textContent = filled
       ? '✨ Filled from receipt — please double-check.' + (state.autoMsg ? ' ' + state.autoMsg.replace(/^✨ /, '') : '')
@@ -1136,7 +1141,8 @@ async function scanCurrentFile() {
 
 async function onSubmit(ev) {
   ev.preventDefault();
-  const code = $('iCat').value; const c = CAT_BY_CODE[code];
+  const isAuto = $('iCat').value === 'AUTO';
+  const code = isAuto ? resolveAuto().cat.code : $('iCat').value; const c = CAT_BY_CODE[code];
   const payload = {
     date: $('iDate').value, amount: $('iAmount').value,
     merchant: $('iMerchant').value.trim(), description: $('iDesc').value.trim(),
@@ -1155,7 +1161,7 @@ async function onSubmit(ev) {
     } else {
       const o = await api('addExpense', payload);
       state.expenses.push(o);
-      toast(state.file ? 'Saved · receipt uploaded' : 'Expense saved');
+      toast((isAuto ? 'Saved as ' + c.short : 'Expense saved') + (state.file ? ' · receipt uploaded' : ''));
     }
     $('dlg').close(); writeCache();
     if (state.year !== 'all' && payload.date.slice(0, 4) !== state.year) state.year = payload.date.slice(0, 4);
@@ -1209,7 +1215,10 @@ $('fFile').onchange = onFile;
 $('pvRemove').onclick = () => { if (state.editing && state.editing.receiptUrl && !state.file) state.removeFile = true; state.file = null; showPreview(null); };
 $('iMerchant').oninput = onTextInput;
 $('iDesc').oninput = onTextInput;
-$('iCat').onchange = () => { state.userPickedCat = true; $('suggest').textContent = ''; };
+$('iCat').onchange = () => {
+  state.userPickedCat = $('iCat').value !== 'AUTO';
+  if (state.userPickedCat) $('suggest').textContent = ''; else onTextInput();
+};
 $('iDate').onchange = () => { state.dateTouched = true; };
 $('frm').onsubmit = onSubmit;
 $('dlg').addEventListener('click', e => { if (e.target === $('dlg')) $('dlg').close(); }); // tap backdrop to close
