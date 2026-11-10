@@ -110,7 +110,16 @@
   /* Wordmark: one font (Plus Jakarta Sans ExtraBold); "On The Go" in brand teal */
   .brand { margin: 0; flex: 1; min-width: 0; font-size: 26px; line-height: 1.05; font-weight: 800; letter-spacing: -.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand .otg { color: var(--brand); }
-  .menu-wrap { position: relative; }
+  .menu-wrap { position: relative; width: 48px; height: 48px; flex: none; }
+  /* When the header scrolls away, the ☰ button floats at the top-right */
+  .menu-wrap.float .menu-btn {
+    position: fixed; z-index: 20; top: calc(12px + env(safe-area-inset-top));
+    right: max(16px, calc((100vw - 980px) / 2 + 18px));
+    box-shadow: 0 8px 24px rgba(10, 60, 70, .18); animation: popIn .2s ease;
+  }
+  .menu.glass { background: var(--bg); }   /* solid so the page behind doesn't show through */
+  .menu-wrap.float .menu { position: fixed; z-index: 21; top: calc(68px + env(safe-area-inset-top)); right: max(16px, calc((100vw - 980px) / 2 + 18px)); }
+  @keyframes popIn { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
   .menu-btn { width: 48px; height: 48px; border-radius: 16px; background: var(--card); display: grid; place-items: center; cursor: pointer; color: var(--text); }
   .menu-btn svg { width: 22px; height: 22px; }
   .menu { position: absolute; right: 0; top: 56px; z-index: 10; min-width: 230px; border-radius: 18px; background: var(--sheet); padding: 6px; display: none; }
@@ -1476,6 +1485,13 @@ async function loadApp() {
     else $('loading').textContent = 'Could not load data: ' + (e && e.message || e);
   }
 }
+
+// Float the ☰ button once the header has scrolled out of view
+(() => {
+  const wrap = document.querySelector('.menu-wrap'), head = document.querySelector('header');
+  const update = () => wrap.classList.toggle('float', head.getBoundingClientRect().bottom < 4);
+  window.addEventListener('scroll', update, { passive: true }); update();
+})();
 
 // Always open at the top (don't restore the old scroll position on refresh / reopen)
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
