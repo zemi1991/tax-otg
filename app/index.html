@@ -347,12 +347,12 @@
 
   <section id="login" class="login glass hidden">
     <h2>Sign in</h2>
-    <p>Enter your email and we'll send you a secure sign-in link. No password needed.</p>
+    <p id="lgIntro">Sign in with your email and password.</p>
     <input id="lgEmail" type="email" placeholder="you@gmail.com" autocomplete="email" inputmode="email">
-    <input id="lgPass" type="password" placeholder="Password" autocomplete="current-password" class="hidden">
-    <button id="lgSend">Send sign-in link</button>
+    <input id="lgPass" type="password" placeholder="Password" autocomplete="current-password">
+    <button id="lgSend">Sign in</button>
     <div class="msg" id="lgMsg"></div>
-    <button type="button" class="alt" id="lgMode">Sign in with password instead</button>
+    <button type="button" class="alt" id="lgMode">Forgot password? Email me a sign-in link</button>
   </section>
 
   <div id="loading" class="loading">Loading your receipts…</div>
@@ -1168,13 +1168,15 @@ function showLogin() {
   $('loading').classList.add('hidden'); $('main').classList.add('hidden'); $('btnAdd').classList.add('hidden');
   $('login').classList.remove('hidden');
   try { $('lgEmail').value = localStorage.getItem('tax-otg-email') || ''; } catch (e) {}
+  setLoginMode(true);   // password is the default; email link is the fallback
 }
-let pwMode = false;
+let pwMode = true;
 function setLoginMode(pw) {
   pwMode = pw;
   $('lgPass').classList.toggle('hidden', !pw);
   $('lgSend').textContent = pw ? 'Sign in' : 'Send sign-in link';
-  $('lgMode').textContent = pw ? 'Email me a sign-in link instead' : 'Sign in with password instead';
+  $('lgIntro').textContent = pw ? 'Sign in with your email and password.' : "We'll email you a one-time sign-in link. After signing in, you can set a new password in the menu.";
+  $('lgMode').textContent = pw ? 'Forgot password? Email me a sign-in link' : 'Back to password sign-in';
   $('lgMsg').textContent = ''; $('lgMsg').className = 'msg';
   if (pw) setTimeout(() => $('lgPass').focus(), 50);
 }
@@ -1189,7 +1191,7 @@ $('lgSend').onclick = async () => {
     msg.textContent = 'Signing in…';
     const { error } = await SB.auth.signInWithPassword({ email, password: $('lgPass').value });
     $('lgSend').disabled = false;
-    if (error) { msg.className = 'msg bad'; msg.textContent = /invalid/i.test(error.message) ? 'Wrong email or password. No password yet? Use the email link once, then Menu → Set password.' : error.message; }
+    if (error) { msg.className = 'msg bad'; msg.textContent = /invalid/i.test(error.message) ? 'Wrong email or password.' : error.message; }
     else { msg.textContent = ''; }   // onAuthStateChange opens the app
     return;
   }
