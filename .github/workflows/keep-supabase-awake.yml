@@ -1,0 +1,47 @@
+# Keeps the free Supabase project from pausing (it pauses after 7 days without activity).
+# Every 3 days it makes one tiny read request with the app's public key. Row Level Security
+# means it gets back an empty list — no personal data is read or logged.
+# If the request fails (e.g. the project is already paused), the run fails and GitHub emails you.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: '17 1 */3 * *'   # every 3 days at 01:17 UTC (09:17 Malaysia time)
+  workflow_dispatch:          # "Run workflow" button for a manual ping
+
+permissions:
+  contents: write             # only used for the small keep-alive commit below
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ping Supabase
+        run: |
+          URL=$(grep -o "supabaseUrl: '[^']*'" app/config.js | cut -d"'" -f2)
+          KEY=$(grep -o "supabaseKey: '[^']*'" app/config.js | cut -d"'" -f2)
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
+            "$URL/rest/v1/expenses?select=id&limit=1" -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "Supabase responded: HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::Supabase did not respond normally (HTTP $code). Open supabase.com/dashboard and click Restore project if it is paused."
+            exit 1
+          fi
+
+      # GitHub switches off scheduled workflows after 60 days with no commits in the repo.
+      # If the last commit is 45+ days old, record a tiny timestamp so the schedule keeps running.
+      - name: Keep the schedule active
+        run: |
+          last=$(git log -1 --format=%ct); now=$(date +%s)
+          if [ $(( (now - last) / 86400 )) -ge 45 ]; then
+            date -u +%FT%TZ > .github/keepalive.txt
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/keepalive.txt
+            git commit -m "chore: keep scheduled Supabase ping active"
+            git push
+          else
+            echo "Recent commit found — nothing to do."
+          fi
