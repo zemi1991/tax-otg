@@ -1270,7 +1270,8 @@ function applyMeta(d) {
   $('lnkSignOut').classList.toggle('hidden', !IS_LIVE);
   $('lnkPassword').classList.toggle('hidden', !IS_LIVE);
 }
-function showMain() { $('login').classList.add('hidden'); $('loading').classList.add('hidden'); $('main').classList.remove('hidden'); $('btnAdd').classList.remove('hidden'); }
+let shownOnce = false;
+function showMain() { if (!shownOnce) { shownOnce = true; requestAnimationFrame(() => window.scrollTo(0, 0)); } $('login').classList.add('hidden'); $('loading').classList.add('hidden'); $('main').classList.remove('hidden'); $('btnAdd').classList.remove('hidden'); }
 
 function exportCsv() {
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
@@ -1371,6 +1372,11 @@ async function loadApp() {
     else $('loading').textContent = 'Could not load data: ' + (e && e.message || e);
   }
 }
+
+// Always open at the top (don't restore the old scroll position on refresh / reopen)
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+window.scrollTo(0, 0);
+window.addEventListener('pageshow', () => window.scrollTo(0, 0));
 
 (async function init() {
   $('greet').textContent = greet();
