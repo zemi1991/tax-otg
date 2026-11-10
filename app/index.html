@@ -723,6 +723,17 @@ function parseReceiptText(text) {
 
   // Total: prefer lines labelled total / jumlah / amount due (not subtotal), take the last match
   let amount = 0;
+  // Bills: use this month's charges ("Current Charges" / "Caj Semasa"), not the total due (may include arrears)
+  if (isBill) {
+    const curRe = /(total\s*current\s*charges|current\s*charges|current\s*bill|jumlah\s*caj\s*semasa|caj\s*semasa|bil\s*semasa)/i;
+    const onlyMoney = l => /^(RM\s*)?[\d,]+\.\d{2}$/i.test((l || '').trim());
+    for (let i = 0; i < lines.length && !amount; i++) {
+      if (!curRe.test(lines[i]) || /previous|terdahulu|lepas|tunggakan/i.test(lines[i])) continue;
+      let vals = money(lines[i]);
+      if (!vals.length && onlyMoney(lines[i + 1])) vals = money(lines[i + 1]);   // value on the next line (not a table row)
+      if (vals.length) amount = vals[0];
+    }
+  }
   const strongRe = /(total\s*amount\s*due|amount\s*due|jumlah\s*(perlu|yang\s*perlu)\s*dibayar|jumlah\s*bayaran|grand\s*total|paid\s*amount|amount\s*paid|total\s*paid|total\s*payable)/i;
   for (let i = 0; i < lines.length && !amount; i++) {
     if (!strongRe.test(lines[i])) continue;
