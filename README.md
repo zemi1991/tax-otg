@@ -2,7 +2,7 @@
 
 Personal receipt keeper for Malaysian (LHDN) individual tax reliefs — installable web app (PWA).
 
-- **App:** https://zemi1991.github.io/tax-otg/
+- **App:** https://zemi1991.github.io/tax-otg/app/
 - **Data:** Supabase (Postgres + private Storage), protected by Row Level Security — only the signed-in owner can read or write. Sign-ups are disabled.
 - **This repo holds only the app code.** No receipts or personal data are stored here. `config.js` contains the Supabase project URL and the *public* anon key, which is designed to be shipped in client apps.
 
