@@ -298,6 +298,12 @@
   .pw-dlg .row button { border: 0; border-radius: 14px; padding: 12px 18px; font: inherit; font-weight: 700; cursor: pointer; background: var(--fill); color: var(--text); }
   .pw-dlg .row button.go { background: linear-gradient(145deg, var(--brand), var(--brand-deep)); color: #fff; }
   .pw-dlg .msg { font-size: 14px; min-height: 18px; color: var(--red); }
+  .yr-list { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; max-height: 50vh; overflow-y: auto; }
+  .yr { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--fill); cursor: pointer; }
+  .yr input { width: 20px; height: 20px; accent-color: var(--brand); margin: 0; flex: none; }
+  .yr b { font-size: 17px; }
+  .yr span { color: var(--text-2); font-size: 13px; margin-left: auto; text-align: right; }
+  .yr-all { background: none; border: 0; color: var(--brand-ink); font: inherit; font-weight: 600; font-size: 14px; cursor: pointer; padding: 0; }
   .loading { text-align: center; padding: 80px 0; color: var(--text-2); }
   .banner { border-radius: 16px; padding: 10px 14px; font-size: 13px; color: var(--text-2); background: var(--tile); margin-bottom: 4px; }
 
@@ -314,6 +320,8 @@
     .chart-row { grid-template-columns: 1fr; }
     dialog { margin: auto 0 0; width: 100vw; max-width: 100vw; border-radius: 28px 28px 0 0; max-height: 94vh; }
     .sheet { padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
+    .pw-dlg { width: 100vw; max-width: 100vw; border-radius: 28px 28px 0 0; }
+    .pw-dlg form { padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
   }
   @media (max-width: 360px) { .brand { font-size: 20px; } .app-icon { width: 42px; height: 42px; } }
 </style>
@@ -487,6 +495,17 @@
     <input id="pw2" type="password" placeholder="Repeat password" autocomplete="new-password" minlength="8">
     <div class="msg" id="pwMsg"></div>
     <div class="row"><button type="button" id="pwCancel">Cancel</button><button type="submit" class="go" id="pwSave">Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="expDlg" class="pw-dlg">
+  <form id="expForm" method="dialog">
+    <h2>Export data</h2>
+    <p>Choose the year(s). Each year gets its own folder with receipts (by category) and an Excel file.</p>
+    <button type="button" class="yr-all" id="expAll">Select all</button>
+    <div class="yr-list" id="expYears"></div>
+    <div class="msg" id="expMsg"></div>
+    <div class="row"><button type="button" id="expCancel">Cancel</button><button type="submit" class="go" id="expGo">Export</button></div>
   </form>
 </dialog>
 
@@ -1313,12 +1332,11 @@ function workbookForYear(yr, list) {
   return XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
 }
 
-async function exportAllData() {
-  const list = state.expenses.slice();
-  if (!list.length) { toast('No data to export yet'); return; }
+async function exportAllData(chosen) {
+  const list = state.expenses.filter(e => chosen.includes(e.date.slice(0, 4)));
+  if (!list.length) { toast('No data for the chosen year(s)'); return; }
   const withFile = list.filter(e => e.fileId || e.receiptUrl);
   const years = [...new Set(list.map(e => e.date.slice(0, 4)))].sort();
-  if (!confirm(`Export all data?\n\n${list.length} records · ${withFile.length} receipt files · ${years.length} year(s): ${years.join(', ')}\n\nOne ZIP with a folder per year (receipts by category + Excel file).`)) return;
   try {
     toast('Preparing export…');
     if (!window.JSZip) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
@@ -1342,11 +1360,36 @@ async function exportAllData() {
     list.forEach(e => delete e.zipName);
     toast('Compressing…');
     const out = await zip.generateAsync({ type: 'blob' });
-    downloadBlob(out, 'Tax-OTG-export-' + new Date().toISOString().slice(0, 10) + '.zip');
+    downloadBlob(out, 'Tax-OTG-' + (years.length === 1 ? years[0] : years[0] + '-' + years[years.length - 1]) + '.zip');
     toast(`Exported ${list.length} records · ${withFile.length - failed} receipts` + (failed ? ` · ${failed} failed` : ''));
   } catch (err) { list.forEach(e => delete e.zipName); toast('Could not export: ' + (err && err.message || err)); }
 }
-$('lnkZip').onclick = e => { e.preventDefault(); $('menu').classList.remove('open'); exportAllData(); };
+// Year picker
+function openExport() {
+  const years = [...new Set(state.expenses.map(e => e.date.slice(0, 4)))].sort().reverse();
+  if (!years.length) { toast('No data to export yet'); return; }
+  const pre = state.year !== 'all' && years.includes(state.year) ? [state.year] : years;
+  $('expYears').innerHTML = years.map(y => {
+    const items = state.expenses.filter(e => e.date.slice(0, 4) === y);
+    const files = items.filter(e => e.fileId || e.receiptUrl).length;
+    return `<label class="yr"><input type="checkbox" value="${y}" ${pre.includes(y) ? 'checked' : ''}><b>${y}</b><span>${items.length} records<br>${files} receipt file${files === 1 ? '' : 's'}</span></label>`;
+  }).join('');
+  $('expMsg').textContent = '';
+  syncExpAll();
+  $('expDlg').showModal();
+}
+const expBoxes = () => [...$('expYears').querySelectorAll('input')];
+function syncExpAll() { $('expAll').textContent = expBoxes().every(b => b.checked) ? 'Clear all' : 'Select all'; }
+$('expYears').onchange = syncExpAll;
+$('expAll').onclick = () => { const all = expBoxes().every(b => b.checked); expBoxes().forEach(b => b.checked = !all); syncExpAll(); };
+$('expCancel').onclick = () => $('expDlg').close();
+$('expForm').onsubmit = e => {
+  e.preventDefault();
+  const chosen = expBoxes().filter(b => b.checked).map(b => b.value);
+  if (!chosen.length) { $('expMsg').textContent = 'Choose at least one year.'; return; }
+  $('expDlg').close(); exportAllData(chosen);
+};
+$('lnkZip').onclick = e => { e.preventDefault(); $('menu').classList.remove('open'); openExport(); };
 $('lnkSignOut').onclick = async e => {
   e.preventDefault();
   if (!confirm('Sign out of Tax OTG on this device?')) return;
